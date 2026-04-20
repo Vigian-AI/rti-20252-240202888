@@ -67,33 +67,33 @@ Masalah riset yang layak harus memenuhi 5 kriteria:
 PROBLEM STATEMENT BUILDER
 
 Domain & Konteks
-  Domain   : ____________________
-  Konteks  : ____________________
+  Domain   : Rekayasa Perangkat Lunak / Pengembangan Aplikasi Desktop
+  Konteks  : Pemilihan bahasa pemrograman (Python, Java, C++, C#) dengan trade-off performa vs kemudahan pengembangan
 
 System Context
-  Input       : ____________________
-  Process     : ____________________
-  Output      : ____________________
-  Outcome     : ____________________
-  Constraints : ____________________
-  Stakeholders: ____________________
+  Input       : Kode program uji seragam untuk 3 skenario (komputasi intensif, pengolahan file besar, GUI dasar) pada empat bahasa
+  Process     : Kompilasi/eksekusi pada lingkungan yang sama, lalu pengukuran waktu eksekusi, penggunaan memori, waktu kompilasi, dan jumlah baris kode
+  Output      : Tabel komparatif metrik performa tiap bahasa
+  Outcome     : Dasar pemilihan bahasa pemrograman desktop yang lebih objektif sesuai prioritas proyek
+  Constraints : Satu mesin uji (Intel Core i5, RAM 8GB, SSD 256GB, Windows 11), tiga kali pengulangan, skenario uji terbatas
+  Stakeholders: Developer desktop, technical lead, manajer proyek, dosen/mahasiswa TI
 
 Fenomena → Problem
-  Fenomena yang diamati             : ____________________
-  Gejala (symptom) yang terukur     : ____________________
-  Masalah yang didiagnosis          : ____________________
-  Masalah riset (researchable)      : ____________________
-  Variabel yang terukur             : ____________________
+  Fenomena yang diamati             : Bahasa pemrograman populer menunjukkan karakteristik berbeda pada performa dan produktivitas pengembangan
+  Gejala (symptom) yang terukur     : Pada hasil paper, waktu eksekusi bervariasi 120-290 ms; memori 15-50 MB; kompilasi 300-500 ms; baris kode 70-90
+  Masalah yang didiagnosis          : Keputusan pemilihan bahasa sering belum berbasis kerangka evaluasi multi-kriteria yang terukur
+  Masalah riset (researchable)      : Bagaimana pengaruh pilihan bahasa (Python, Java, C++, C#) terhadap performa runtime dan effort pengembangan pada skenario desktop seragam, serta trade-off mana yang paling sesuai untuk prioritas proyek yang berbeda?
+  Variabel yang terukur             : Variabel bebas = bahasa pemrograman; variabel terikat = waktu eksekusi, memori, waktu kompilasi, jumlah baris kode; variabel kontrol = hardware, OS, skenario uji, jumlah pengulangan
 
 Problem Quality Check
-  [ ] Clarity — Apakah satu orang membaca akan paham?
-  [ ] Measurability — Apakah ada metrik kuantitatif?
-  [ ] Relevance — Apakah penting untuk domain?
-  [ ] Testability — Apakah bisa gagal?
-  [ ] Impact — Apakah ada kontribusi jika terjawab?
+  [x] Clarity — Apakah satu orang membaca akan paham?
+  [x] Measurability — Apakah ada metrik kuantitatif?
+  [x] Relevance — Apakah penting untuk domain?
+  [x] Testability — Apakah bisa gagal?
+  [x] Impact — Apakah ada kontribusi jika terjawab?
 
 Problem Statement (1 paragraf):
-  ____________________
+  Dalam konteks pengembangan aplikasi desktop, pemilihan bahasa pemrograman masih sering dilakukan berdasarkan kebiasaan tim, padahal hasil pengujian menunjukkan perbedaan kuantitatif yang nyata antarbahasa (waktu eksekusi 120-290 ms, penggunaan memori 15-50 MB, waktu kompilasi 300-500 ms, dan jumlah baris kode 70-90). Masalah risetnya adalah belum jelas bagaimana trade-off antara performa teknis dan kemudahan pengembangan dapat dievaluasi secara sistematis pada kondisi uji yang setara untuk Python, Java, C++, dan C#. Karena itu, penelitian difokuskan pada pengukuran komparatif empat metrik utama tersebut agar dapat menghasilkan dasar keputusan yang lebih objektif dalam memilih bahasa sesuai prioritas proyek desktop.
 ```
 
 ---
@@ -102,18 +102,18 @@ Problem Statement (1 paragraf):
 
 Pilih satu topik di bidang TI yang diminati. Transformasikan melalui 5 tahap Problem Formation Model.
 
-**Topik awal:** ________________________________________
+**Topik awal:** Analisis perbandingan performa bahasa pemrograman populer (Python, Java, C++, C#) dalam pengembangan aplikasi desktop.
 
 | Tahap | Hasil |
 |-------|-------|
-| Reality | *Contoh: Aplikasi e-commerce sering ditinggalkan saat checkout* |
-| Observed Issue (Symptom) | *Contoh: Bounce rate checkout 68%* |
-| Diagnosed Problem (Root Cause) | |
-| Researchable Problem | |
-| Measurable Variable | |
+| Reality | Dalam proyek desktop, tim perlu memilih bahasa yang memengaruhi performa aplikasi sekaligus kecepatan pengembangan. |
+| Observed Issue (Symptom) | Data benchmark menunjukkan variasi besar antarbahasa: eksekusi 120-290 ms, memori 15-50 MB, kompilasi 300-500 ms, dan baris kode 70-90. |
+| Diagnosed Problem (Root Cause) | Belum ada mekanisme keputusan yang secara eksplisit menimbang performa teknis dan effort coding berdasarkan kebutuhan proyek. |
+| Researchable Problem | Belum diketahui bahasa mana yang paling sesuai untuk prioritas proyek desktop berbeda (mis. efisiensi runtime vs rapid development) pada lingkungan uji yang seragam. |
+| Measurable Variable | Bahasa pemrograman; waktu eksekusi (ms); penggunaan memori (MB); waktu kompilasi (ms); jumlah baris kode; bobot prioritas kebutuhan proyek. |
 
-**Apakah terjebak solution-first thinking?** [ ] Ya / [ ] Tidak
-> Jika ya, kembali ke tahap mana? ________________________
+**Apakah terjebak solution-first thinking?** [ ] Ya / [x] Tidak
+> Jika ya, kembali ke tahap mana? -
 
 ---
 
@@ -123,14 +123,14 @@ Gambarkan konteks sistem dari masalah riset di Latihan 1.
 
 | Komponen | Deskripsi |
 |----------|----------|
-| Input | *Contoh: Request HTTP dari browser pengguna* |
-| Process | |
-| Output | |
-| Outcome | |
-| Constraints | |
-| Stakeholders | |
+| Input | Program uji setara pada Python, Java, C++, C# untuk tiga skenario: komputasi intensif, file I/O besar, dan GUI dasar. |
+| Process | Kompilasi (untuk Java/C++/C#), eksekusi program, profiling performa, dan pencatatan metrik dengan prosedur yang sama. |
+| Output | Nilai rata-rata waktu eksekusi, penggunaan memori, waktu kompilasi, serta jumlah baris kode tiap bahasa. |
+| Outcome | Rekomendasi bahasa yang paling sesuai dengan karakteristik proyek desktop (fokus performa, keseimbangan, atau kecepatan development). |
+| Constraints | Lingkungan uji tunggal, jumlah pengulangan terbatas, dan cakupan skenario yang belum merepresentasikan semua tipe aplikasi desktop. |
+| Stakeholders | Pengembang software, tim engineering, project manager, institusi pendidikan TI, dan peneliti komparasi bahasa. |
 
-**Komponen mana yang paling relevan dengan masalah riset?** _______________
+**Komponen mana yang paling relevan dengan masalah riset?** Process (karena validitas kesimpulan sangat ditentukan oleh kesetaraan prosedur pengujian dan kontrol variabel).
 
 ---
 
@@ -140,17 +140,16 @@ Evaluasi problem statement yang sudah dibuat menggunakan 5 kriteria.
 
 | Kriteria | Skor (1-5) | Justifikasi |
 |----------|-----------|-------------|
-| Clarity | *Contoh: 4 — cukup jelas tapi perlu spesifikasi dataset* | |
-| Measurability | | |
-| Relevance | | |
-| Testability | | |
-| Impact | | |
+| Clarity | 5 | Problem statement menyebut domain, konteks desktop, bahasa yang dibandingkan, dan arah analisis trade-off secara jelas. |
+| Measurability | 5 | Semua variabel operasional terdefinisi kuantitatif: waktu eksekusi, memori, kompilasi, dan baris kode. |
+| Relevance | 4 | Relevan untuk praktik pengembangan desktop, tetapi fokusnya belum mencakup konteks web/mobile. |
+| Testability | 4 | Klaim dapat diuji dan berpotensi dibantah, namun masih berisiko confounder jika kontrol eksperimen kurang ketat. |
+| Impact | 4 | Memberikan dasar keputusan teknis yang praktis, walau generalisasi lintas domain aplikasi masih terbatas. |
 
-**Skor total:** _____ / 25
+**Skor total:** 22 / 25
 
 **Problem statement versi final (1 paragraf):**
-> ___________________________________________________
-> ___________________________________________________
+> Pada pengembangan aplikasi desktop, pemilihan bahasa pemrograman masih kerap mengandalkan preferensi, meskipun bukti empiris menunjukkan perbedaan performa yang berarti antara Python, Java, C++, dan C#. Gejala ini terlihat dari variasi hasil uji pada metrik inti (waktu eksekusi, penggunaan memori, waktu kompilasi, dan jumlah baris kode), yang menandakan adanya trade-off nyata antara efisiensi runtime dan kemudahan pengembangan. Masalah riset yang diajukan adalah bagaimana mengevaluasi trade-off tersebut secara terukur pada skenario uji yang setara agar dapat ditentukan rekomendasi bahasa yang sesuai dengan prioritas proyek desktop. Dengan demikian, kontribusi riset diarahkan pada penyediaan dasar pengambilan keputusan yang lebih objektif, teruji, dan dapat direplikasi.
 
 ---
 
@@ -159,5 +158,5 @@ Evaluasi problem statement yang sudah dibuat menggunakan 5 kriteria.
 > Bandingkan "masalah" yang biasa ditemui saat coding (bug, error) dengan masalah riset. Apa perbedaan fundamental dalam cara mendefinisikan dan mendekati keduanya?
 
 **Jawaban:**
-> ___________________________________________________
-> ___________________________________________________
+> Masalah saat coding biasanya bersifat lokal dan langsung operasional, seperti error sintaks, bug logika, atau fitur yang belum jalan; targetnya adalah memperbaiki sistem agar berfungsi. Sebaliknya, masalah riset adalah gap pengetahuan yang harus didefinisikan dengan batasan jelas, variabel terukur, dan desain uji yang dapat memvalidasi atau menolak klaim.
+> Jadi pendekatan coding berfokus pada solusi cepat dan benar secara fungsional, sedangkan pendekatan riset berfokus pada pembuktian yang sistematis, transparan, dan dapat direplikasi oleh peneliti lain.
