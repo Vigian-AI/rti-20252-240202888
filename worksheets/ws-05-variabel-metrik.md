@@ -87,16 +87,18 @@ Alignment Check:
 
 Gunakan RQ dari WS-04. Definisikan variabel dan metriknya.
 
-**RQ:** __________________________________________________
+**RQ:** Apakah terdapat perbedaan signifikan dalam **throughput (RPS)** dan **p95 latency (ms)** antara aplikasi REST API yang dibangun menggunakan **Java Spring Boot** dan **.NET** saat melakukan operasi CRUD pada database **MongoDB**?
 
 | Variabel | Tipe | Konsep Abstrak | Metrik Konkret | Skala (NOIR) | Satuan |
 |----------|------|---------------|----------------|-------------|--------|
-| *Contoh: Jenis model* | *IV* | *Pendekatan klasifikasi* | *Categorical: CNN vs RF* | *Nominal* | *—* |
-| | DV | | | | |
-| | CV | | | | |
+| Framework backend | IV | Teknologi pengembangan backend | Kategori: Spring Boot vs .NET | Nominal | — |
+| Throughput (primary) | DV | Kapasitas sistem menangani request | Requests per second (RPS), rata-rata pada steady-state | Ratio | requests/sec |
+| p95 Latency (primary) | DV | Responsiveness (tail latency) | 95th percentile latency selama pengukuran | Ratio | ms |
+| Dataset / DB config | CV | Ukuran dataset dan konfigurasi MongoDB | Fixed dataset seed, index config, instance sizing | — | — |
+| Load profile / Env | CV | Skenario beban dan hardware | Virtual users, ramp-up, vCPU, RAM | Ratio / Nominal | users, cores, GB |
 
-**Apakah ada lompatan logis dalam rantai?** [ ] Ya / [ ] Tidak
-> Jika ya, di mana? ____________________________________
+**Apakah ada lompatan logis dalam rantai?** [ ] Ya / [x] Tidak
+> Semua langkah terdokumentasi: RQ menentukan framework (IV) dan metrik terukur (RPS, p95) yang dapat dikumpulkan dari load testing terhadap dua implementasi identik yang dijalankan di lingkungan yang dikontrol.
 
 ---
 
@@ -104,17 +106,22 @@ Gunakan RQ dari WS-04. Definisikan variabel dan metriknya.
 
 Evaluasi metrik DV yang dipilih di Latihan 1 menggunakan 3 kriteria.
 
-| Kriteria | Skor (1-5) | Justifikasi |
-|----------|-----------|-------------|
-| Representative | *Contoh: 4 — F1-Score mewakili keseimbangan precision-recall* | |
-| Sensitive | | |
-| Feasible | | |
+Metrik primary: `Throughput (RPS)` dan `p95 Latency (ms)`.
 
-**Apakah perlu secondary metric?** [ ] Ya / [ ] Tidak
-> Jika ya, apa dan mengapa? _____________________________
+| Kriteria | Metrik | Skor (1-5) | Justifikasi |
+|----------|--------|-----------:|-------------|
+| Representative | Throughput (RPS) | 5 | Langsung merepresentasikan kapasitas sistem di bawah beban; relevan untuk RQ comparison. |
+| Sensitive | Throughput (RPS) | 4 | Peka terhadap perubahan performa, namun bisa saturasi pada batas hardware sehingga perlu pengaturan load yang tepat. |
+| Feasible | Throughput (RPS) | 5 | Mudah dikumpulkan dengan tool load-testing (k6, JMeter, wrk). |
+| Representative | p95 Latency (ms) | 5 | Menangkap pengalaman pengguna pada tail latency, sangat relevan untuk responsivitas. |
+| Sensitive | p95 Latency (ms) | 5 | Peka terhadap perbedaan implementasi, terutama pada kondisi kontensi/garbage collection. |
+| Feasible | p95 Latency (ms) | 4 | Dapat dikumpulkan namun membutuhkan banyak sampel dan stabilitas lingkungan untuk hasil konsisten. |
+
+**Apakah perlu secondary metric?** [x] Ya
+> Secondary metrics: CPU utilization, memory usage, error rate (5xx), request success rate, dan p99 latency. Alasan: membantu menjelaskan penyebab perbedaan (mis. bottleneck CPU, GC, atau error spikes) dan mencegah interpretasi melenceng jika primary metric dipengaruhi oleh faktor eksternal.
 
 **Contoh kasus ceiling effect untuk metrik ini:**
-> ___________________________________________________
+> Jika beban yang diuji terlalu rendah dibanding kapasitas sistem, kedua framework dapat mencapai throughput maksimal yang sama dan latency sangat rendah sehingga perbedaan menjadi tidak terdeteksi (ceiling effect). Mitigasi: jalankan skenario dengan beberapa level beban termasuk near-saturation.
 
 ---
 
@@ -122,12 +129,20 @@ Evaluasi metrik DV yang dipilih di Latihan 1 menggunakan 3 kriteria.
 
 Bayangkan data yang akan dikumpulkan dari eksperimen. Evaluasi 4 dimensi kualitas data.
 
+Rancangan kualitas data untuk eksperimen perbandingan Spring Boot vs .NET:
+
 | Dimensi | Pertanyaan | Jawaban | Strategi Mitigasi |
 |---------|-----------|---------|------------------|
-| Completeness | *Apakah semua data point terkumpul?* | | |
-| Consistency | *Apakah ada kontradiksi internal?* | | |
-| Validity | *Apakah benar-benar mengukur yang dimaksud?* | | |
-| Representativeness | *Apakah sampel mewakili populasi target?* | | |
+| Completeness | Apakah semua run dan metrik tercatat penuh? | Harus: setiap run menyimpan RPS, p95, p99, CPU, mem, error rate, dan konfigurasi lingkungan. | Otomasi pengumpulan (script + tool), simpan logs terstruktur (JSON), validasi post-run untuk deteksi data hilang; ulangi run jika ada missing. |
+| Consistency | Apakah pengukuran konsisten antar-run dan antar-framework? | Risiko inkonsistensi jika environment tidak identik (background load, GC tuning). | Gunakan container/VM terstandardisasi, fix DB seed & config, disable background services, jalankan benchmark pada jam terkontrol; gunakan infra yang sama untuk kedua implementasi. |
+| Validity | Apakah metrik benar mengukur konsep yang dimaksud? | Throughput dan p95 mengukur kapasitas dan pengalaman pengguna; namun butuh warm-up dan steady-state. | Definisikan prosedur pengukuran (warm-up period, steady-state window), dokumentasikan metric definitions, filter out startup/warmup samples. |
+| Representativeness | Apakah skenario mewakili beban nyata target? | Bisa tidak mewakili jika beban sintetis terlalu sederhana. | Rancang beberapa workload profiles (light, medium, heavy, bursty), gunakan realistic request distributions and payloads, gunakan dataset yang menyerupai produksi. |
+
+Tambahan praktik eksperimen:
+- Lakukan minimal 30 pengulangan per kondisi jika memungkinkan, atau gunakan power analysis untuk menentukan jumlah run.
+- Simpan metadata tiap run: commit hash, JVM/CLR version, OS, CPU, memory, MongoDB config, dataset seed, load profile.
+- Gunakan alat monitoring (Prometheus/Grafana) untuk cross-check resource metrics.
+- Tentukan prosedur analisis statistik (mis. t-test atau Wilcoxon) dan threshold effect size sebelum menjalankan eksperimen (pre-registration).
 
 ---
 
@@ -136,5 +151,4 @@ Bayangkan data yang akan dikumpulkan dari eksperimen. Evaluasi 4 dimensi kualita
 > Mengapa memilih metrik setelah melihat data dianggap p-hacking? Apa bedanya dengan eksplorasi data yang sah?
 
 **Jawaban:**
-> ___________________________________________________
-> ___________________________________________________
+> Memilih metrik setelah melihat hasil memungkinkan peneliti memilih metrik yang menonjol untuk mendukung hipotesis (bias seleksi). Eksplorasi yang sah memisahkan analisis "confirmatory" (pre-registered, primary metrics) dan "exploratory" (post-hoc, dilaporkan terpisah), serta menyesuaikan klaim sesuai status temuan.
