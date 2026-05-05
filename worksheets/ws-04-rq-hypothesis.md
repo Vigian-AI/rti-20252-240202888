@@ -103,24 +103,24 @@ Hypothesis Pair:
 
 Gunakan gap yang ditemukan di WS-03. Transformasikan menjadi Research Question.
 
-**Gap dari WS-03:** ____________________________________
+**Gap dari WS-03:** Belum ada studi yang membandingkan kinerja Spring Boot dan .NET pada workload yang menggunakan database NoSQL (seperti MongoDB), yang merupakan standar dalam arsitektur modern.
 
 **RQ versi pertama (tulis bebas):**
-> ___________________________________________________
+> Bagaimana perbandingan performa Spring Boot vs .NET kalau pakai database NoSQL?
 
 **Evaluasi RQ:**
 
 | Komponen | Ada? | Isi |
 |----------|------|-----|
-| Metode spesifik | *Contoh: Ya — CNN vs RF* | |
-| Metrik terukur | | |
-| Baseline | | |
-| Dataset/konteks | | |
+| Metode spesifik | [x] Ya | Spring Boot vs .NET |
+| Metrik terukur | [ ] Tidak | Performa belum spesifik (throughput, latency?) |
+| Baseline | [x] Ya | Spring Boot dan .NET saling menjadi baseline |
+| Dataset/konteks | [x] Ya | Database NoSQL |
 
-**Tipe RQ:** [ ] Comparison / [ ] Improvement / [ ] Exploratory
+**Tipe RQ:** [x] Comparison / [ ] Improvement / [ ] Exploratory
 
 **RQ versi revisi (setelah evaluasi):**
-> ___________________________________________________
+> Apakah terdapat perbedaan signifikan dalam **throughput (RPS)** dan **p95 latency (ms)** antara aplikasi REST API yang dibangun menggunakan **Java Spring Boot** dan **.NET** saat melakukan operasi CRUD pada database **MongoDB**?
 
 ---
 
@@ -130,14 +130,14 @@ Rumuskan pasangan hipotesis dari RQ di Latihan 1.
 
 | Komponen | Isi |
 |----------|-----|
-| H₀ | *Contoh: Tidak ada perbedaan signifikan F1-Score antara CNN dan RF pada dataset CIC-MalMem-2022* |
-| H₁ | |
-| Metrik | |
-| Threshold | |
-| Justifikasi threshold | |
+| H₀ | Tidak ada perbedaan signifikan secara statistik (>5%) dalam metrik throughput dan p95 latency antara implementasi Spring Boot dan .NET saat berinteraksi dengan database MongoDB. |
+| H₁ | Terdapat perbedaan signifikan secara statistik (>5%) dalam metrik throughput dan p95 latency antara implementasi Spring Boot dan .NET saat berinteraksi dengan database MongoDB. |
+| Metrik | Throughput (requests per second), p95 Latency (milliseconds) |
+| Threshold | Perbedaan > 5% dianggap signifikan |
+| Justifikasi threshold | Perbedaan di bawah 5% dalam benchmark kinerja seringkali berada dalam rentang noise atau variabilitas eksperimental, sehingga tidak dianggap sebagai perbedaan yang praktis atau substansial. |
 
-**Apakah hipotesis ini falsifiable?** [ ] Ya / [ ] Tidak
-> Bagaimana cara membuktikannya salah? ___________________
+**Apakah hipotesis ini falsifiable?** [x] Ya / [ ] Tidak
+> Bagaimana cara membuktikannya salah? Jika hasil eksperimen menunjukkan perbedaan rata-rata metrik antara kedua framework adalah 5% atau kurang, maka kita gagal menolak H₀, yang berarti hipotesis alternatif (H₁) tidak terbukti.
 
 ---
 
@@ -147,14 +147,14 @@ Lengkapi rantai dari RQ hingga metode analisis.
 
 | Tahap | Isi |
 |-------|-----|
-| RQ | *Contoh: Apakah CNN menghasilkan F1-Score lebih tinggi dari RF...* |
-| Variable (IV) | *Contoh: Jenis algoritma (CNN vs RF)* |
-| Variable (DV) | |
-| Metric | |
-| Data source | |
-| Analysis method | |
+| RQ | Apakah terdapat perbedaan signifikan dalam throughput dan p95 latency antara Spring Boot dan .NET saat melakukan operasi CRUD pada database MongoDB? |
+| Variable (IV) | Framework backend (Java Spring Boot vs .NET) |
+| Variable (DV) | Throughput (RPS), p95 Latency (ms) |
+| Metric | Requests per second (RPS) dan milidetik (ms) |
+| Data source | Hasil load testing (misalnya dari K6, JMeter) terhadap dua aplikasi identik yang terhubung ke database MongoDB dengan dataset yang sama. |
+| Analysis method | Uji-t (t-test) statistik untuk membandingkan rata-rata dari dua kelompok (Spring Boot vs .NET) untuk setiap metrik (throughput dan latency). |
 
-**Apakah rantai lengkap?** [ ] Ya / [ ] Tidak
+**Apakah rantai lengkap?** [x] Ya / [ ] Tidak
 > Jika tidak, tahap mana yang perlu direvisi? ______________
 
 ---
@@ -163,6 +163,10 @@ Lengkapi rantai dari RQ hingga metode analisis.
 
 > Ambil satu judul skripsi/paper yang pernah dibaca. Coba ekstrak RQ-nya. Apakah RQ tersebut memenuhi semua komponen (metode, metrik, baseline, konteks)? Jika tidak, apa yang hilang?
 
-**Judul:** _____________________________________________
-**RQ yang diekstrak:** __________________________________
-**Komponen yang hilang:** _______________________________
+**Judul:** Perbandingan Performa Kinerja Node.js, PHP, dan Python dalam Aplikasi REST
+**RQ yang diekstrak:** Bagaimana perbandingan performa (kecepatan respon, penggunaan CPU, penggunaan RAM) antara Node.js, PHP, dan Python dalam konteks aplikasi REST?
+**Komponen yang hilang:**
+- **Metrik Kurang Spesifik:** "Kecepatan respon" bisa lebih diperjelas (misalnya, rata-rata, p95, p99 latency).
+- **Konteks Versi:** Paper menggunakan versi teknologi yang sudah usang (PHP 7.0, Python 2.7, Node.js 6), sehingga relevansinya untuk kondisi saat ini berkurang.
+- **Konteks Beban Kerja:** Tidak dijelaskan secara rinci skenario *load testing* (misalnya, jumlah pengguna virtual, durasi, *ramp-up period*), hanya menyebutkan "10000 request pada saat yang bersamaan".
+- **Baseline Implisit:** Ketiga bahasa saling menjadi baseline, yang sudah cukup baik, namun tidak dibandingkan dengan SOTA (State-of-the-Art) atau pendekatan lain yang mungkin lebih modern.
