@@ -68,36 +68,36 @@ Ancaman validitas harus diidentifikasi **sebelum** eksperimen dan mitigasinya di
 ```
 EXPERIMENT DESIGN
 
-Research Question : ____________________
-Hypothesis        : ____________________
-Tipe Eksperimen   : [ ] Comparison  [ ] Ablation  [ ] Parameter
+Research Question : Apakah terdapat perbedaan signifikan dalam throughput (RPS) dan p95 latency (ms) antara aplikasi REST API yang dibangun menggunakan Java Spring Boot dan .NET saat melakukan operasi CRUD pada database MongoDB?
+Hypothesis        : H1 — Terdapat perbedaan signifikan pada throughput (RPS) dan p95 latency antara Spring Boot dan .NET pada kondisi eksperimen yang identik.
+Tipe Eksperimen   : [x] Comparison  [ ] Ablation  [ ] Parameter
 
 Kondisi Eksperimen:
 | Kondisi | Deskripsi | IV Value | CV Settings |
 |---------|-----------|----------|-------------|
-| Control |           |          |             |
-| Treatment |         |          |             |
+| Control | Spring Boot API sebagai baseline pada skenario CRUD identik | Spring Boot | Dataset seed tetap, MongoDB config tetap, load profile tetap, vCPU/RAM/network identik |
+| Treatment | .NET API identik secara fungsional pada skenario CRUD yang sama | .NET | Dataset seed tetap, MongoDB config tetap, load profile tetap, vCPU/RAM/network identik |
 
 Fairness Checklist:
-  [ ] Dataset identik untuk semua kondisi
-  [ ] Preprocessing setara
-  [ ] Tuning effort setara
-  [ ] Environment identik
-  [ ] Metrik evaluasi sama
+  [x] Dataset identik untuk semua kondisi
+  [x] Preprocessing setara
+  [x] Tuning effort setara
+  [x] Environment identik
+  [x] Metrik evaluasi sama
 
 Threat Analysis:
 | Threat Type | Ancaman Spesifik | Mitigasi |
 |-------------|-----------------|----------|
-| Internal    |                 |          |
-| External    |                 |          |
-| Construct   |                 |          |
-| Conclusion  |                 |          |
+| Internal    | Variasi runtime (JIT/GC), cache warm-up, dan noise resource | Warm-up terstandar, randomisasi urutan run, repeat N kali, clear cache antar-run |
+| External    | Hasil mungkin hanya berlaku untuk dataset, MongoDB version, dan hardware tertentu | Uji pada variasi ukuran dataset dan minimal satu environment tambahan |
+| Construct   | RPS/p95 mungkin tidak merepresentasikan kualitas layanan end-to-end | Tambahkan error rate dan p99 sebagai metrik pendukung, definisikan window steady-state |
+| Conclusion  | Sample size kecil atau uji statistik tidak sesuai | Power analysis sederhana, gunakan uji non-parametrik jika distribusi tidak normal |
 
 Statistical Plan:
-  Uji statistik   : ____________________
-  Justifikasi      : ____________________
-  Alpha            : ____________________
-  Effect size min  : ____________________
+  Uji statistik   : Shapiro-Wilk untuk normalitas; jika normal gunakan independent t-test, jika tidak gunakan Mann-Whitney U
+  Justifikasi      : Dua kelompok independen dengan metrik numerik; pemilihan uji mengikuti distribusi data
+  Alpha            : 0.05
+  Effect size min  : Cohen's d >= 0.5 atau Cliff's delta >= 0.33
 ```
 
 ---
@@ -106,13 +106,13 @@ Statistical Plan:
 
 Susun desain eksperimen berdasarkan RQ, variabel, dan sistem dari WS-04 sampai WS-06.
 
-**RQ:** __________________________________________________
-**Tipe eksperimen:** [ ] Comparison / [ ] Ablation / [ ] Parameter
+**RQ:** Apakah terdapat perbedaan signifikan dalam throughput (RPS) dan p95 latency (ms) antara aplikasi REST API yang dibangun menggunakan Java Spring Boot dan .NET saat melakukan operasi CRUD pada database MongoDB?
+**Tipe eksperimen:** [x] Comparison / [ ] Ablation / [ ] Parameter
 
 | Kondisi | Deskripsi | IV Value | CV Settings |
 |---------|-----------|----------|-------------|
-| Control | *Contoh: RF baseline dari literatur* | *RF* | *Dataset X, 80:20 split, seed 42* |
-| Treatment | | | |
+| Control | Spring Boot API sebagai baseline untuk skenario CRUD yang sama | Spring Boot | Dataset seed tetap, MongoDB config tetap, load profile tetap, vCPU/RAM/network identik |
+| Treatment | .NET API identik secara fungsional | .NET | Dataset seed tetap, MongoDB config tetap, load profile tetap, vCPU/RAM/network identik |
 
 ---
 
@@ -122,14 +122,14 @@ Evaluasi apakah desain eksperimen di Latihan 1 sudah fair.
 
 | Kriteria | Status | Detail |
 |----------|--------|--------|
-| Dataset identik | *Contoh: ✅ — sama-sama pakai CIC-MalMem-2022* | |
-| Preprocessing setara | | |
-| Tuning effort setara | | |
-| Environment identik | | |
-| Metrik evaluasi sama | | |
+| Dataset identik | ✅ | Seed dataset, index, dan ukuran DB sama untuk semua run |
+| Preprocessing setara | ✅ | Skema koleksi dan pipeline CRUD identik |
+| Tuning effort setara | ✅ | Upaya tuning setara atau keduanya default dengan dokumentasi konfigurasi |
+| Environment identik | ✅ | Container/VM sama, versi runtime dan MongoDB dipin |
+| Metrik evaluasi sama | ✅ | RPS rata-rata steady-state dan p95 latency dari window yang sama |
 
-**Ada yang tidak fair?** [ ] Ya / [ ] Tidak
-> Jika ya, bagaimana cara memperbaikinya? ________________
+**Ada yang tidak fair?** [ ] Ya / [x] Tidak
+> Jika ya, bagaimana cara memperbaikinya? N/A
 
 ---
 
@@ -139,14 +139,14 @@ Identifikasi ancaman validitas untuk desain eksperimen ini.
 
 | Threat Type | Ancaman Spesifik | Mitigasi |
 |-------------|-----------------|----------|
-| Internal | *Contoh: Data leakage antara train-test* | *Contoh: Gunakan stratified split, validasi tidak ada overlap* |
-| External | | |
-| Construct | | |
-| Conclusion | | |
+| Internal | Variasi performa karena warm-up JIT/GC dan cache | Standarisasi warm-up, randomisasi urutan eksperimen, ulangi N kali |
+| External | Generalisasi terbatas pada satu dataset dan satu konfigurasi infra | Tambah variasi ukuran dataset dan satu konfigurasi infra lain |
+| Construct | RPS/p95 saja belum cukup mewakili kualitas layanan | Tambahkan error rate, p99, dan CPU/memory sebagai metrik pendukung |
+| Conclusion | Power statistik rendah jika run sedikit | Tentukan N minimal, laporkan CI dan effect size |
 
-**Ancaman mana yang paling sulit dimitigasi?** _____________
+**Ancaman mana yang paling sulit dimitigasi?** External validity
 **Mengapa?**
-> ___________________________________________________
+> Membutuhkan variasi environment dan dataset tambahan yang sering terbatas oleh resource dan waktu.
 
 ---
 
@@ -155,6 +155,6 @@ Identifikasi ancaman validitas untuk desain eksperimen ini.
 > Sebuah paper melaporkan "metode kami mengalahkan semua baseline." Apa 3 pertanyaan pertama yang harus diajukan untuk mengevaluasi klaim ini?
 
 **Jawaban:**
-1. ___________________________________________________
-2. ___________________________________________________
-3. ___________________________________________________
+1. Apakah semua baseline diuji pada dataset, preprocessing, dan environment yang identik?
+2. Apakah tuning effort dan konfigurasi baseline setara serta didokumentasikan dengan jelas?
+3. Apakah hasilnya signifikan secara statistik dan disertai effect size/CI yang memadai?
