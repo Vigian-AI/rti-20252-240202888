@@ -26,8 +26,20 @@ Problem (Bab 2) → Gap (Bab 3) → RQ & H (Bab 4) → Metrik (Bab 5) → Sistem
 
 ### Koherensi Vertikal + Horizontal
 
-- **Vertikal** — Alur logis atas-ke-bawah (problem → experiment)
+- **Vertikal** — Alur logis atas-ke-bawah (problem → experiment). Setiap section menjawab pertanyaan yang diangkat section sebelumnya dan memunculkan pertanyaan baru.
 - **Horizontal** — Konsistensi terminologi (nama variabel di RQ = di hipotesis = di metrik = di desain)
+
+**Operasionalisasi Red Thread** (benang merah):
+```
+Bab 2 (Problem) → | memperkenalkan masalah X + evidensi |
+                          ↓ menimbulkan pertanyaan: "apa akar gap-nya?"
+Bab 3 (Gap)     → | menjawab pertanyaan tadi + membuka "lalu apa yang perlu diteliti?" |
+                          ↓
+Bab 4 (RQ/H)    → | menjawab gap dengan pertanyaan spesifik + prediksi terukur |
+                          ↓
+Bab 5-7 (Method)→ | menjawab RQ melalui desain eksperimen yang tepat |
+```
+Jika ada lompatan (section B tidak menjawab pertanyaan section A), red thread putus.
 
 ### Jebakan Kognitif
 
@@ -73,13 +85,20 @@ Koneksi Horizontal (Konsistensi):
   [ ] Variabel di RQ = variabel di hipotesis = metrik di desain
   [ ] Scope tidak berubah dari masalah ke eksperimen
 
+Cognitive Trap Checklist:
+  [ ] Tidak ada paragraf "promosi" di pendahuluan (hanya data & gap)
+  [ ] Metodologi disesuaikan ke RQ, bukan copy-paste textbook
+  [ ] Timeline sudah ditambah buffer 30-50% dari estimasi awal
+  [ ] Proposal mengakui kemungkinan H0 tidak ditolak (honest uncertainty)
+  [ ] Tidak ada klaim "pasti berhasil" atau "meningkatkan signifikan"
+
 Rubrik Self-Assessment:
-| Kriteria | 1 (Lemah) | 2 (Cukup) | 3 (Baik) | Skor |
-|----------|-----------|-----------|----------|------|
-| Koherensi |          |           |          |      |
-| Specificity |        |           |          |      |
-| Feasibility |        |           |          |      |
-| Rigor     |          |           |          |      |
+| Kriteria     | 1 (Lemah)                                        | 2 (Cukup)                                     | 3 (Baik)                                           | Skor |
+|------------- |--------------------------------------------------|-----------------------------------------------|----------------------------------------------------|------|
+| Koherensi    | >2 koneksi vertikal terputus                     | 1-2 koneksi lemah, argumen masih bisa diikuti | Semua 6 koneksi terhubung, red thread jelas        |      |
+| Specificity  | Variabel/metrik masih abstrak, tidak ada angka   | Sebagian metrik terdefinisi numerik           | Semua metrik + threshold + unit pengukuran jelas   |      |
+| Feasibility  | Timeline >6 bulan tanpa memperhitungkan sumber   | Timeline 3-6 bulan dengan asumsi tertentu     | Timeline 1-3 bulan realistis dengan rencana detail |      |
+| Rigor        | Baseline tidak jelas atau straw man              | 1-2 baseline dengan justifikasi partial       | 2+ baseline SOTA + justifikasi pemilihan lengkap   |      |
 ```
 
 ---
