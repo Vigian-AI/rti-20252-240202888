@@ -145,11 +145,11 @@ Dokumentasikan environment untuk eksperimen perbandingan Spring Boot vs .NET pad
 
 Rancang tes repeatability untuk eksperimen perbandingan Spring Boot vs .NET.
 
-| Run | Seed | Metrik Utama | Hasil Sama? |
-|-----|------|-------------|-------------|
-| 1 | 42 (dataset seed MongoDB) | Throughput (RPS) rata-rata steady-state & p95 latency (ms) | — (baseline) |
-| 2 | 42 | Throughput (RPS) rata-rata steady-state & p95 latency (ms) | [ ] Ya / [ ] Tidak |
-| 3 | 42 | Throughput (RPS) rata-rata steady-state & p95 latency (ms) | [ ] Ya / [ ] Tidak |
+| Run | Dataset | Metrik Utama | Hasil Sama? |
+|-----|---------|-------------|-------------|
+| 1 | IKEA_product_catalog.csv (401.046 dokumen, identik antar-run) | Throughput (RPS) rata-rata steady-state & p95 latency (ms) | — (baseline) |
+| 2 | IKEA_product_catalog.csv (identik) | Throughput (RPS) rata-rata steady-state & p95 latency (ms) | [ ] Ya / [ ] Tidak |
+| 3 | IKEA_product_catalog.csv (identik) | Throughput (RPS) rata-rata steady-state & p95 latency (ms) | [ ] Ya / [ ] Tidak |
 
 **Jika hasil berbeda, kemungkinan penyebab:**
 
@@ -166,7 +166,7 @@ Untuk eksperimen ini, penyebab spesifik yang paling mungkin:
 4. **Ryzen 7 8845HS boost clock variability** — CPU ini memiliki rentang TDP yang lebar; performa bisa berbeda tergantung thermal headroom. Mitigasi: set Docker resource limit eksplisit (`cpus: "4"`, `memory: "4g"`) di `docker-compose.yml` agar beban terisolasi.
 
 **Checklist kontrol yang sudah diterapkan:**
-- [x] Random seed di-set di semua level (dataset seed MongoDB = 42, populate data deterministik via skrip)
+- [x] Data riil di-import dari CSV yang sama sebelum eksperimen dan tidak dimodifikasi antar-run (konsistensi dijamin oleh SHA-256 file CSV yang di-commit ke version control)
 - [x] Container di-recreate penuh antar-run (`docker compose down -v && docker compose up -d`) untuk reset JVM dan cache state
 - [x] Resource limit container dikunci di `docker-compose.yml` (cpus, memory) agar tidak berubah antar-run
 - [x] Config file yang sama untuk semua run (semua parameter eksperimen di `experiment-config.yaml`, di-mount ke container)
@@ -207,15 +207,22 @@ Tulis README minimum untuk eksperimen perbandingan Spring Boot vs .NET pada Mong
   # Build semua image
   docker compose build
 
-  # Populate dataset (seed = 42, 100.000 dokumen)
-  docker compose run --rm data-seeder python populate_data.py --seed 42 --count 100000
+  # Import dataset IKEA ke MongoDB (401.046 dokumen dari CSV)
+  docker compose run --rm data-importer python import_data.py \
+    --source /data/IKEA_product_catalog.csv \
+    --db benchmark_db --collection ikea_products
 
 ## 3. Data
-  Sumber  : Data sintetis yang digenerate via container data-seeder (Python 3.12)
-  Format  : Dokumen JSON pada koleksi MongoDB (fields: _id, name, value, timestamp)
-  Ukuran  : 100.000 dokumen (~50 MB)
-  Seed    : 42 (deterministik, reproducible)
-  Lokasi  : MongoDB volume di-mount ke ./data/mongodb/
+  Sumber  : IKEA_product_catalog.csv (data riil, di-commit ke version control)
+  Format  : Dokumen JSON pada koleksi MongoDB `ikea_products`
+            Fields: unique_id, product_id, product_name, product_type,
+                    product_measurements, product_description, main_category,
+                    sub_category, product_rating, product_rating_count,
+                    badge, online_sellable, url, price, currency,
+                    discount, sale_tag, country
+  Ukuran  : 401.046 dokumen (~116 MB CSV)
+  Seed    : N/A — data riil, konsistensi dijamin oleh SHA-256 file CSV
+  Lokasi  : File CSV di ./data/IKEA_product_catalog.csv (di-mount ke container)
 
 ## 4. Execution
   # Jalankan satu siklus eksperimen lengkap (3 run x 2 framework):
@@ -245,33 +252,24 @@ Tulis README minimum untuk eksperimen perbandingan Spring Boot vs .NET pada Mong
     steady_state   : 120s
     ramp_down      : 10s
     warmup_duration: 30s   (tidak dihitung dalam pengukuran)
-    db_seed        : 42
+    db_seed        : N/A (data riil dari IKEA_product_catalog.csv)
     mongo_uri      : mongodb://mongodb:27017/benchmark_db
+    mongo_collection: ikea_products
     repeat_runs    : 3
     container_cpu  : "2"
     container_mem  : "2g"
 
 ## 6. Expected Output
   Lokasi  : ./results/ (di-mount dari container)
-  Format  : JSON per run, CSV agregat setelah analisis
+  Format  : CSV agregat — satu baris per run, semua run dalam satu file `all_runs.csv`
 
-  Contoh output per run (JSON):
-    {
-      "framework": "spring-boot",
-      "run": 1,
-      "throughput_rps": 1250.4,
-      "p95_latency_ms": 48.7,
-      "p99_latency_ms": 72.1,
-      "error_rate_pct": 0.0,
-      "docker_image": "eclipse-temurin:21-jre-alpine",
-      "mongo_image": "mongo:7.0",
-      "config": "experiment-config.yaml",
-      "timestamp": "2026-06-22T10:00:00Z"
-    }
+  Contoh output (baris pertama all_runs.csv):
+    run_id,scenario,timestamp_start,timestamp_end,throughput_rps,p95_latency_ms,p99_latency_ms,error_rate_pct,iterations_total,data_received_mb,data_sent_mb,dataset_source,dataset_rows,dataset_sha256,docker_image,mongo_image,git_commit,anomaly
+    sb-run-001,spring-boot,2026-06-22T10:00:00Z,2026-06-22T10:03:20Z,1250.4,48.7,72.1,0.0,150048,42.3,18.7,IKEA_product_catalog.csv,401046,abc123...,eclipse-temurin:21-jre-alpine,mongo:7.0,abc1234,
 
   Setelah semua run selesai, jalankan analisis:
     docker compose run --rm analyzer python analyze.py \
-      --input /results/ --output /results/summary.csv
+      --input /results/all_runs.csv --output /results/summary.csv
   untuk mendapatkan rata-rata, std dev, dan hasil uji statistik
   (Shapiro-Wilk -> t-test atau Mann-Whitney U, alpha=0.05, effect size Cohen's d).
 ```
