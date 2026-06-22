@@ -109,13 +109,13 @@ Kumpulkan hasil dari WS-02 sampai WS-07 menjadi satu ringkasan proposal.
 
 | Komponen | Sumber | Isi (1-2 kalimat) |
 |----------|--------|-------------------|
-| Problem Statement | WS-02 | *Contoh: Sistem rekomendasi memiliki akurasi tinggi (RMSE 0.87) tetapi satisfaction score rendah (45/100). Gap antara metrik teknis dan kepuasan pengguna belum diteliti.* |
-| Gap | WS-03 | *Contoh: Tidak ada studi yang mengintegrasikan collaborative filtering dengan user-context signals untuk meningkatkan satisfaction.* |
-| RQ | WS-04 | *Contoh: Apakah penambahan context-aware signals pada collaborative filtering meningkatkan satisfaction score tanpa menurunkan RMSE?* |
-| Hipotesis | WS-04 | *Contoh: H₁: Sistem CF+context menghasilkan satisfaction ≥ 70/100 dengan RMSE ≤ 0.90 dibanding baseline CF murni.* |
-| Variabel & Metrik | WS-05 | *Contoh: IV = jenis sistem (CF vs CF+context); DV = satisfaction score (skala 0-100) + RMSE (regresi).* |
-| Sistem | WS-06 | |
-| Desain Eksperimen | WS-07 | |
+| Problem Statement | WS-02 | Pemilihan framework backend (Spring Boot vs .NET) masih sering berbasis preferensi, meskipun bukti empiris menunjukkan variasi kinerja yang nyata. Belum ada mekanisme evaluasi yang secara eksplisit menimbang throughput dan latensi pada konteks database NoSQL (MongoDB) yang merupakan standar arsitektur modern. |
+| Gap | WS-03 | Studi komparatif yang ada umumnya menggunakan database relasional, versi teknologi usang, atau environment uji yang terbatas — belum ada yang membandingkan Spring Boot vs .NET pada workload CRUD berbasis MongoDB dalam setup terkontrol dan terdokumentasi ketat (kombinasi method, data, dan context gap). |
+| RQ | WS-04 | Apakah terdapat perbedaan signifikan dalam throughput (RPS) dan p95 latency (ms) antara aplikasi REST API yang dibangun menggunakan Java Spring Boot dan .NET saat melakukan operasi CRUD pada database MongoDB? |
+| Hipotesis | WS-04 | H₁: Terdapat perbedaan signifikan secara statistik (>5%) dalam throughput dan p95 latency antara implementasi Spring Boot dan .NET pada kondisi eksperimen yang identik; H₀ menyatakan tidak ada perbedaan signifikan. |
+| Variabel & Metrik | WS-05 | IV = framework backend (Spring Boot vs .NET, skala nominal); DV = throughput (RPS, ratio) dan p95 latency (ms, ratio); CV = dataset seed, konfigurasi MongoDB, load profile, vCPU/RAM/network. |
+| Sistem | WS-06 | Dua implementasi REST API yang identik secara fungsional (Spring Boot dan .NET) terhubung ke satu instance MongoDB; load-test tool sebagai generator dan metrics collector sebagai pengukur DV; konfigurasi lingkungan dipin sebagai CV. |
+| Desain Eksperimen | WS-07 | Comparison study terkontrol: control = Spring Boot API, treatment = .NET API, semua CV identik; fairness diverifikasi dengan checklist; analisis statistik menggunakan uji normalitas → independent t-test atau Mann-Whitney U, alpha 0.05, effect size Cohen's d ≥ 0.5. |
 
 ---
 
@@ -125,19 +125,19 @@ Verifikasi 6 koneksi kritis. Isi dengan merujuk tabel di Latihan 1.
 
 | Koneksi | Status | Bukti |
 |---------|--------|-------|
-| Problem → Gap | *Contoh: ✅ — gap muncul dari 15 paper Bab 3 yang tidak ada yang mengkombinasikan CF + context untuk satisfaction* | |
-| Gap → RQ | *Contoh: ✅ — RQ langsung menanyakan apakah CF+context meningkatkan satisfaction* | |
-| RQ → Hypothesis | *Contoh: ✅ — H₁ memprediksi satisfaction ≥ 70 dengan threshold RMSE ≤ 0.90* | |
-| Hypothesis → Metric | | |
-| Metric → System | | |
-| System → Experiment | | |
+| Problem → Gap | + | Problem (WS-02) mengidentifikasi tidak adanya evaluasi terukur; gap (WS-03) muncul dari analisis 5 paper yang menunjukkan semua studi menggunakan DB relasional atau environment terbatas, sehingga gap NoSQL/MongoDB terdokumentasi dari literatur. |
+| Gap → RQ | + | Gap yang teridentifikasi adalah tidak adanya perbandingan Spring Boot vs .NET pada MongoDB; RQ (WS-04) langsung menanyakan perbedaan throughput dan p95 latency pada kondisi tersebut — pertanyaan menjawab gap secara spesifik. |
+| RQ → Hypothesis | + | RQ menanyakan apakah ada perbedaan signifikan; H₁ (WS-04) memprediksi perbedaan >5% pada throughput dan p95 latency dengan threshold yang dijustifikasi (di bawah 5% dianggap noise eksperimental). |
+| Hypothesis → Metric | + | H₁ menyebut throughput dan p95 latency; WS-05 mendefinisikan keduanya secara operasional (RPS rata-rata steady-state, persentil ke-95 latency dalam ms, skala ratio) dan menetapkan metrik sebelum eksperimen. |
+| Metric → System | + | Throughput diukur oleh load-test collector; p95 latency diukur oleh response-time metrics collector — keduanya merupakan komponen eksplisit dalam mapping sistem WS-06. |
+| System → Experiment | + | Desain eksperimen WS-07 menggunakan dua implementasi REST API dan pipeline load-test sebagai instrumen; kondisi control/treatment memetakan IV; seluruh CV dikunci sesuai komponen sistem. |
 
-**Koneksi mana yang paling lemah?** _______________________
+**Koneksi mana yang paling lemah?** Hypothesis → Metric
 **Bagaimana cara memperkuatnya?**
-> ___________________________________________________
+> Threshold ">5%" perlu dijustifikasi lebih kuat dengan referensi literatur atau power analysis yang menentukan minimum detectable effect. Sebaiknya ditambahkan nilai numerik target (mis. RPS ≥ X atau latency ≤ Y ms) agar H₁ tidak hanya relasional tetapi juga absolut sebagai sanity check.
 
-**Konsistensi horizontal — apakah istilah dan scope konsisten?** [ ] Ya / [ ] Tidak
-> Jika tidak, di bagian mana terjadi inkonsistensi? _________
+**Konsistensi horizontal — apakah istilah dan scope konsisten?** [x] Ya / [ ] Tidak
+> Istilah "throughput (RPS)", "p95 latency (ms)", "Spring Boot", ".NET", dan "MongoDB" digunakan secara konsisten di seluruh WS-02 hingga WS-07 dan dalam proposal UTS. Scope tidak berubah: selalu fokus pada REST API dengan operasi CRUD pada MongoDB.
 
 ---
 
@@ -147,15 +147,15 @@ Evaluasi proposal mini menggunakan rubrik.
 
 | Kriteria | Skor (1-3) | Justifikasi |
 |----------|-----------|-------------|
-| Koherensi | *Contoh: 2 — koneksi gap→RQ masih lemah karena gap belum cukup narrow* | |
-| Specificity | *Contoh: 3 — metrik (satisfaction 0-100, RMSE) sudah terdefinisi numerik* | |
-| Feasibility | | |
-| Rigor | | |
+| Koherensi | 3 | Semua 6 koneksi vertikal terhubung dan terdokumentasi. Red thread jelas: masalah pemilihan framework berbasis preferensi → gap NoSQL belum diteliti → RQ komparatif MongoDB → metrik throughput/latency → sistem dua API → eksperimen comparison terkontrol. |
+| Specificity | 3 | Semua metrik terdefinisi numerik: throughput dalam RPS (rata-rata steady-state), p95 latency dalam ms, threshold signifikansi >5%, alpha 0.05, effect size Cohen's d ≥ 0.5. Unit pengukuran eksplisit di setiap tahap. |
+| Feasibility | 2 | Dua implementasi REST API + satu instance MongoDB adalah setup yang realistis dalam 1-3 bulan. Namun jadwal di proposal UTS masih berupa kolom kosong tanpa alokasi minggu yang eksplisit — perlu diisi dengan buffer 30-50%. |
+| Rigor | 3 | Dua baseline SOTA yang relevan dan representatif (Spring Boot dan .NET) dengan justifikasi pemilihan dari 5 paper (Godinho et al. 2024, Grzeszuk & Miłosz 2025, Kronis & Uhanova 2018, dll.). Perbandingan bukan straw man karena keduanya adalah framework modern aktif. |
 
-**Skor total:** _____ / 12
+**Skor total:** 11 / 12
 
-**Apakah proposal siap untuk fase eksekusi?** [ ] Ya / [ ] Belum
-> Jika belum, apa yang perlu diperbaiki? __________________
+**Apakah proposal siap untuk fase eksekusi?** [x] Ya / [ ] Belum
+> Proposal memiliki koherensi vertikal penuh, metrik spesifik, baseline yang kuat, dan desain eksperimen yang fair. Satu hal yang perlu dilengkapi sebelum eksekusi adalah pengisian jadwal dengan alokasi waktu eksplisit per aktivitas (implementasi dua API, setup MongoDB, benchmarking, analisis statistik) beserta buffer 30-50% dari estimasi awal.
 
 ---
 
@@ -163,8 +163,9 @@ Evaluasi proposal mini menggunakan rubrik.
 
 > Dari seluruh proses WS-01 sampai WS-08, bagian mana yang paling mudah dan paling sulit? Mengapa? Apa yang akan dilakukan berbeda jika mengulang dari awal?
 
-**Bagian termudah:** ____________________________________
-**Bagian tersulit:** ____________________________________
+**Bagian termudah:** Kompilasi dan verifikasi integrasi (WS-08 ini) — karena pada titik ini semua komponen sudah terdefinisi dengan jelas, sehingga mengisi tabel dan memeriksa koneksi terasa seperti validasi akhir, bukan pekerjaan baru.
+
+**Bagian tersulit:** Identifikasi gap dan pemilihan metrik (WS-03 dan WS-05) — WS-03 membutuhkan analisis kritis terhadap limitasi setiap paper dan sintesis ke gap statement yang bermakna, bukan sekadar daftar "belum ada yang meneliti." WS-05 membutuhkan keputusan desain eksplisit tentang operasionalisasi konsep abstrak ("kinerja") menjadi metrik terukur yang valid sebelum eksperimen dijalankan.
+
 **Yang akan dilakukan berbeda:**
-> ___________________________________________________
-> ___________________________________________________
+> Pertama, menentukan metrik dan threshold secara eksplisit (pre-registration) lebih awal, bahkan sebelum sistem selesai didesain — ini mencegah godaan untuk menyesuaikan metrik setelah melihat hasil awal. Kedua, membuat integration map sederhana (6 koneksi) sejak WS-04 sebagai "kompas" agar setiap keputusan di WS-05, WS-06, dan WS-07 bisa langsung dicek koherensinya, tidak hanya diverifikasi di akhir pada WS-08.
