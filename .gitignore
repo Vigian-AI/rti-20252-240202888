@@ -17,3 +17,6 @@ PROJECT-TRACKER.md
 .vscode/
 Thumbs.db
 .DS_Store
+
+example-riset-directory\05-kode\results
+example-riset-directory\04-data\IKEA_product_catalog.csv
