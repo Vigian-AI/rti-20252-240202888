@@ -20,3 +20,8 @@ Thumbs.db
 
 riset-directory\05-kode\results
 riset-directory\04-data\IKEA_product_catalog.csv
+
+# Raw benchmark logs
+riset-directory/06-output/dn-run-*.csv
+riset-directory/06-output/sb-run-*.csv
+
