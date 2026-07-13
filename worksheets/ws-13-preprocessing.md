@@ -66,33 +66,34 @@ Data leakage terjadi ketika informasi dari test set "bocor" ke preprocessing:
 ```
 PREPROCESSING LOG
 
-Dataset           : ____________________
-Jumlah data awal  : ____________________
+Dataset           : IKEA Product Catalog (IKEA_product_catalog.csv) & k6 Benchmark Logs
+Jumlah data awal  : 401.046 dokumen (Catalog) & 10 runs (k6 Logs)
 
 Cleaning:
 | Masalah | Jumlah Kasus | Penanganan | Justifikasi |
 |---------|-------------|------------|-------------|
-| Missing |             |            |             |
-| Duplikat|             |            |             |
-| Error   |             |            |             |
+| Missing | Variabel rating/price kosong | Diubah menjadi null (None) | Data missing bersifat MCAR, null mencegah error query |
+| Duplikat| 0 kasus | unique_id di-index unik | Data input sudah bersih dari duplikat id |
+| Error   | Format string untuk angka | Parsing string -> float | Nilai numerik harus dalam tipe float untuk aggregasi |
 
 Transformation:
 | Transformasi | Variabel | Detail | Alasan |
 |-------------|----------|--------|--------|
-|             |          |        |        |
+| Exclude Warmup | http_req_duration | Menghapus data dari 30s pertama | Menghindari skewness akibat pemanasan JVM/JIT compiler |
+| Aggregation | k6 log per request | Hitung mean, p95, p99, RPS, error_rate | Menyederhanakan jutaan baris request log menjadi 10 run |
 
 Normalization:
-  Metode    : ____________________
-  Alasan    : ____________________
-  Parameter : (dihitung dari: training set / seluruh data)
+  Metode    : Tidak memerlukan normalisasi
+  Alasan    : Metrik utama (RPS dan ms) adalah skala rasio yang bermakna fisik langsung dan uji statistik komparatif tidak memerlukannya.
+  Parameter : N/A
 
 Leakage Check:
-  [ ] Parameter normalisasi dari training set saja
-  [ ] Tidak ada informasi test set dalam preprocessing
-  [ ] Cross-validation dilakukan setelah split
+  [x] Parameter normalisasi dari training set saja (N/A)
+  [x] Tidak ada informasi test set dalam preprocessing (N/A)
+  [x] Cross-validation dilakukan setelah split (N/A)
 
-Jumlah data akhir : ____________________
-Script tersedia   : [ ] Ya → path: ____ | [ ] Belum
+Jumlah data akhir : 401.046 dokumen (Catalog) & 10 records di all_runs.csv (k6 Logs)
+Script tersedia   : [x] Ya → path: riset-directory/05-kode/scripts/import_data.py & extract_metrics.py | [ ] Belum
 ```
 
 ---
@@ -103,14 +104,13 @@ Periksa dataset Anda (atau dataset contoh) dan dokumentasikan masalah yang ditem
 
 | Masalah | Jumlah Kasus | Penanganan | Justifikasi |
 |---------|-------------|------------|-------------|
-| *Contoh: Missing di kolom "label"* | *12 dari 500 (2.4%)* | *Listwise deletion* | *< 5%, distribusi random (MCAR)* |
-| | | | |
-| | | | |
-| | | | |
+| Missing value di kolom `product_rating`, `product_rating_count`, `price` | ~6.500 kasus rating kosong/none | Konversi string "none" atau kosong ke `None` (Null) | Mencegah error tipe data saat di-import ke MongoDB dan kalkulasi |
+| Error format numerik pada kolom `price`, `product_rating` | Semua kolom bertipe string di CSV | Parsing string ke float menggunakan `float()` di python | Memungkinkan komputasi query agregasi database secara native |
+| Duplikasi ID kandidat pada `unique_id` | 0 kasus (terdeteksi saat import) | Skrip import_data.py menggunakan ordered=False dan unique index | Menjamin integritas constraint unique_id di database |
 
-**Jumlah data sebelum cleaning:** ____
-**Jumlah data setelah cleaning:** ____
-**Persentase data yang hilang/berubah:** ____%
+**Jumlah data sebelum cleaning:** 401.046 dokumen
+**Jumlah data setelah cleaning:** 401.046 dokumen
+**Persentase data yang hilang/berubah:** 0.00% (tidak ada dokumen yang dibuang, hanya format nilainya yang dibersihkan/dikonversi)
 
 ---
 
@@ -120,16 +120,16 @@ Tentukan apakah data Anda perlu normalisasi, dan jika ya, metode apa yang tepat.
 
 | Variabel | Range Asli | Distribusi | Outlier? | Metode Normalisasi | Alasan |
 |----------|-----------|-----------|----------|-------------------|--------|
-| *Contoh: response_time* | *0.1 – 45.2s* | *Right-skewed* | *Ya (45.2s)* | *Robust scaling* | *Ada outlier, perlu robust* || *Contoh: accuracy_score* | *0.72 – 0.95* | *Normal, narrow* | *Tidak* | *Tidak perlu* | *Sudah dalam [0,1], metode berbasis distance tidak digunakan* || | | | | | |
-| | | | | | |
+| `throughput_rps` | 21.12 – 227.55 | Normal per skenario | Tidak | Tidak perlu | Metrik performa dengan arti fisik yang jelas, siap untuk t-test |
+| `p95_latency_ms` | 2.98 – 3297.05 | Skewed (Spring Boot tinggi, .NET rendah) | Tidak | Tidak perlu | Metrik latency bermakna fisik. Uji Mann-Whitney U menggunakan rank sehingga invariant terhadap normalisasi |
 
-**Apakah normalisasi diperlukan?** [ ] Ya / [ ] Tidak
+**Apakah normalisasi diperlukan?** [ ] Ya / [x] Tidak
 **Justifikasi:**
-> ___________________________________________________
+> Metrik throughput (RPS) dan latency (ms) memiliki interpretabilitas fisik yang sangat penting untuk penulisan ilmiah. Melakukan normalisasi (misal min-max atau z-score) akan menghilangkan satuan fisik aslinya dan tidak memberikan keuntungan apa pun, karena uji statistik induktif yang kami jalankan (Independent t-test dan Mann-Whitney U) dapat memproses data mentah tersebut secara langsung.
 
 **Leakage check:**
-- [ ] Parameter dihitung dari training set saja
-- [ ] Normalisasi diterapkan setelah train-test split
+- [x] Parameter dihitung dari training set saja (N/A)
+- [x] Normalisasi diterapkan setelah train-test split (N/A)
 
 ---
 
@@ -140,16 +140,16 @@ Buat ringkasan preprocessing lengkap — dokumentasi yang cukup bagi orang lain 
 ```
 PREPROCESSING SUMMARY
 
-1. Dataset: ____________________
-2. Data awal: ____ records, ____ features
+1. Dataset: IKEA Product Catalog (IKEA_product_catalog.csv) & k6 Benchmark Logs
+2. Data awal: 401.046 records, 18 features (Catalog) | 10 CSV run log k6
 3. Cleaning:
-   - Missing values: ____ kasus, metode: ____
-   - Duplikat: ____ kasus, tindakan: ____
-   - Error: ____ kasus, tindakan: ____
-4. Transformation: ____________________
-5. Normalisasi: ____ (metode), parameter dari ____
-6. Data akhir: ____ records, ____ features
-7. Leakage check: [ ] Lulus / [ ] Ada masalah
+   - Missing values: Mengubah string "none"/kosong pada rating/count/price ke Null, metode: conditional parsing
+   - Duplikat: 0 kasus, tindakan: validasi via MongoDB unique index pada unique_id
+   - Error: Format data string numerik, tindakan: parsing ke float tipe data
+4. Transformation: Memfilter dan membuang data request pada 30 detik pertama (warmup phase) dari k6 logs, menyisakan 120 detik steady-state
+5. Normalisasi: Tidak diperlukan (metode), parameter dari N/A
+6. Data akhir: 401.046 dokumen di MongoDB | 10 baris agregat di results/all_runs.csv
+7. Leakage check: [x] Lulus / [ ] Ada masalah
 ```
 
 ---
@@ -158,5 +158,9 @@ PREPROCESSING SUMMARY
 
 > Apakah Anda pernah melakukan normalisasi "karena biasa dilakukan" tanpa mempertimbangkan apakah benar-benar diperlukan? Apa risiko over-preprocessing?
 
-> ___________________________________________________
-> ___________________________________________________
+Ya, dalam beberapa eksperimen machine learning terdahulu, sering kali ada kecenderungan untuk langsung menerapkan Min-Max Scaler atau Standard Scaler pada seluruh fitur numerik secara refleks tanpa menganalisis apakah model yang digunakan memerlukannya. Sebagai contoh, algoritma berbasis pohon keputusan seperti Random Forest atau XGBoost bersifat invariant terhadap skala fitur, sehingga preprocessing normalisasi sebenarnya tidak diperlukan dan hanya membuang resource komputasi.
+
+Risiko dari over-preprocessing meliputi:
+1. **Kehilangan Makna Fisik (Interpretability):** Nilai latency dalam milidetik atau throughput dalam RPS jauh lebih mudah dipahami oleh pembaca daripada nilai z-score yang bernilai negatif atau nilai min-max di rentang [0, 1].
+2. **Distorsi Distribusi Data:** Terutama jika menggunakan Min-Max scaling pada dataset yang memiliki outlier ekstrem, rentang data normal akan terkompresi ke area yang sangat sempit, mengurangi resolusi informasi.
+3. **Data Leakage:** Jika parameter normalisasi (seperti mean, standard deviation, min, atau max) dihitung dari seluruh dataset sebelum proses split (train-test split atau cross-validation), informasi dari data uji akan bocor ke model pelatihan, menghasilkan estimasi performa yang overoptimistic dan tidak valid secara ilmiah.
