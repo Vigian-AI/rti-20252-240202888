@@ -1,0 +1,107 @@
+services:
+
+  # ── MongoDB ──────────────────────────────────────────────────────────────────
+  mongodb:
+    image: mongo:7.0
+    container_name: benchmark-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+      - ../04-data:/data/import:ro   # mount folder CSV sebagai read-only
+    environment:
+      MONGO_INITDB_DATABASE: benchmark_db
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: "2g"
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Data Importer ─────────────────────────────────────────────────────────────
+  data-importer:
+    image: python:3.12-alpine
+    container_name: benchmark-importer
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    volumes:
+      - ../04-data:/data:ro
+      - ./scripts:/scripts
+    working_dir: /scripts
+    command: sh -c "pip install pymongo --quiet && python import_data.py --source /data/IKEA_product_catalog.csv --uri mongodb://mongodb:27017 --db benchmark_db --collection ikea_products"
+    profiles: ["import"]   # hanya jalan saat: docker compose --profile import up
+
+  # ── Spring Boot API ───────────────────────────────────────────────────────────
+  springboot-api:
+    build:
+      context: ./springboot-api
+      dockerfile: Dockerfile
+    container_name: benchmark-springboot
+    ports:
+      - "8080:8080"
+    environment:
+      MONGO_URI: mongodb://mongodb:27017/benchmark_db
+      MONGO_DB: benchmark_db
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: "2g"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    profiles: ["springboot"]
+
+  # ── .NET API ──────────────────────────────────────────────────────────────────
+  dotnet-api:
+    build:
+      context: ./dotnet-api
+      dockerfile: Dockerfile
+    container_name: benchmark-dotnet
+    ports:
+      - "5000:5000"
+    environment:
+      MONGO_URI: mongodb://mongodb:27017/benchmark_db
+      MONGO_DB: benchmark_db
+      ASPNETCORE_URLS: http://+:5000
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: "2g"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    profiles: ["dotnet"]
+
+  # ── k6 Load Tester ────────────────────────────────────────────────────────────
+  k6:
+    image: grafana/k6:0.51.0
+    container_name: benchmark-k6
+    volumes:
+      - ./scripts:/scripts
+      - ./results:/results
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: "1g"
+    profiles: ["k6"]   # dijalankan manual: docker compose --profile k6 run k6 ...
+
+volumes:
+  mongo-data:

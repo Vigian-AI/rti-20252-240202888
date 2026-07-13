@@ -18,5 +18,5 @@ PROJECT-TRACKER.md
 Thumbs.db
 .DS_Store
 
-example-riset-directory\05-kode\results
-example-riset-directory\04-data\IKEA_product_catalog.csv
+riset-directory\05-kode\results
+riset-directory\04-data\IKEA_product_catalog.csv

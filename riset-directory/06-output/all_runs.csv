@@ -1,0 +1,11 @@
+run_id,scenario,throughput_rps,p95_latency_ms,p99_latency_ms,mean_latency_ms,error_rate_pct,iterations_total
+dn-run-001,dotnet,224.34,5.37,7.24,3.4,32.796,26921
+dn-run-002,dotnet,225.57,4.93,6.39,2.81,33.209,27068
+dn-run-003,dotnet,227.55,2.98,4.05,1.93,33.6519,27306
+dn-run-004,dotnet,226.28,4.51,6.2,2.54,33.9115,27153
+dn-run-005,dotnet,224.27,5.41,7.09,3.45,33.0633,26912
+sb-run-001,spring-boot,21.12,3297.05,4007.4,1008.39,22.8797,2535
+sb-run-002,spring-boot,26.8,2000.19,2298.15,773.16,22.9478,3216
+sb-run-003,spring-boot,28.68,1806.27,2094.65,715.92,23.8593,3441
+sb-run-004,spring-boot,27.96,1892.71,2100.15,736.99,23.2489,3355
+sb-run-005,spring-boot,26.33,2097.07,2398.31,789.46,23.9557,3160
