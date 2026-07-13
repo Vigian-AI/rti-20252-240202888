@@ -5,8 +5,15 @@ import numpy as np
 
 def main():
     csv_path = "results/all_runs.csv"
+    output_dir = "results"
+    
     if not os.path.exists(csv_path):
-        print(f"[ERROR] File {csv_path} tidak ditemukan.")
+        # Coba folder output Tahap 4
+        csv_path = "../06-output/all_runs.csv"
+        output_dir = "../06-output"
+        
+    if not os.path.exists(csv_path):
+        print(f"[ERROR] File all_runs.csv tidak ditemukan di results/ maupun {output_dir}/")
         return
 
     # Load data
@@ -62,9 +69,10 @@ def main():
     ax.spines['right'].set_visible(False)
     
     plt.tight_layout()
-    plt.savefig('results/throughput_comparison.png', dpi=300)
+    out_path = os.path.join(output_dir, 'throughput_comparison.png')
+    plt.savefig(out_path, dpi=300)
     plt.close()
-    print("[DONE] Throughput chart saved to results/throughput_comparison.png")
+    print(f"[DONE] Throughput chart saved to {out_path}")
 
     # ── GRAPH 2: Latency p95 (ms) Log-Scale ─────────────────────────────────────
     fig, ax = plt.subplots(figsize=(6, 5), dpi=300)
@@ -95,9 +103,10 @@ def main():
     ax.spines['right'].set_visible(False)
     
     plt.tight_layout()
-    plt.savefig('results/latency_comparison.png', dpi=300)
+    out_path = os.path.join(output_dir, 'latency_comparison.png')
+    plt.savefig(out_path, dpi=300)
     plt.close()
-    print("[DONE] Latency chart saved to results/latency_comparison.png")
+    print(f"[DONE] Latency chart saved to {out_path}")
 
 if __name__ == "__main__":
     main()
