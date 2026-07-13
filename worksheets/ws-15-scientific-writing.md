@@ -22,7 +22,8 @@ Paper ilmiah adalah **satu argumen utuh** dari masalah ke kontribusi. Setiap nod
 | **Method** | Deskripsi (reproducible) | How was it done? |
 | **Results** | Laporan objektif | What was found? |
 | **Discussion** | Interpretasi + refleksi | What does it mean? |
-| **Conclusion** | Ringkasan + kontribusi | So what? |
+| **Conclusion** | Ringkasan + kontribusi | So wh
+at? |
 
 ### Logical Flow — "Red Thread"
 
